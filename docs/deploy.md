@@ -21,11 +21,11 @@ npx wrangler d1 create webagent-db
 # Create KV namespace
 npx wrangler kv namespace create KV
 
-# Create R2 bucket
-npx wrangler r2 bucket create webagent-kb
-
 # Create Queue
 npx wrangler queues create webagent-emails
+
+# Optional (only if you want KB on R2 instead of KV fallback)
+npx wrangler r2 bucket create webagent-kb
 ```
 
 ### 2. Update wrangler.toml
@@ -41,6 +41,10 @@ database_id = "YOUR_D1_DATABASE_ID"
 [[kv_namespaces]]
 binding = "KV"
 id = "YOUR_KV_NAMESPACE_ID"
+
+[vars]
+AZURE_DEV_AI_BASE_URL = "https://vibe-dev-ai.cognitiveservices.azure.com/openai/v1"
+AZURE_DEV_AI_MODEL = "gpt-5.1"
 ```
 
 ### 3. Set Secrets
@@ -53,6 +57,9 @@ npx wrangler secret put ADMIN_SECRET
 
 # Resend API key for email delivery
 npx wrangler secret put RESEND_API_KEY
+
+# Azure dev account key for GPT-5.1 proxying
+npx wrangler secret put AZURE_DEV_AI_API_KEY
 ```
 
 ### 4. Run Migrations
@@ -82,6 +89,47 @@ npm publish --access public
 After publishing to npm, the widget is available via:
 - unpkg: `https://unpkg.com/@vibetechnologies/webagent/dist/webagent.min.js`
 - jsDelivr: `https://cdn.jsdelivr.net/npm/@vibetechnologies/webagent/dist/webagent.min.js`
+
+## Static Demo Deployment (Cloudflare Pages / Workers Assets)
+
+The repository includes a static configuration assistant at `examples/config-assistant/index.html`. It uses a progressive bundle loader:
+
+- **Development / local file usage**: tries `../../packages/widget/dist/webagent.min.js` first so the demo works directly from the repo or a local static server.
+- **Production hosting**: falls back to versioned CDN URLs for `@vibetechnologies/webagent`, which makes the page safe to deploy as plain static assets on Cloudflare without copying the widget build output.
+
+### Cloudflare Pages
+
+Deploy the example directory directly:
+
+```bash
+pnpm --filter @vibetechnologies/webagent build
+npx wrangler pages deploy examples/config-assistant --project-name webagent-config-assistant
+```
+
+If you want the demo to call a real backend by default, edit the form defaults in `examples/config-assistant/index.html` before deployment or configure the values in the browser after publishing.
+
+### Cloudflare Workers static assets
+
+Point a Worker at the example directory with Wrangler assets:
+
+```toml
+name = "webagent-config-assistant"
+compatibility_date = "2025-01-01"
+
+[assets]
+directory = "examples/config-assistant"
+```
+
+Then deploy:
+
+```bash
+pnpm --filter @vibetechnologies/webagent build
+npx wrangler deploy
+```
+
+### Optional: self-host the widget bundle
+
+If you want Cloudflare to serve the widget bundle instead of the CDN, copy `packages/widget/dist/webagent.min.js` into your static asset directory and update the loader candidates in `examples/config-assistant/index.html` to prefer that hosted path in production.
 
 ## Customer API Key Setup
 
@@ -131,6 +179,9 @@ curl -X PUT https://your-worker.workers.dev/api/kb/my-docs \
   ]'
 ```
 
+By default this backend can store KB docs in **KV** (free-tier friendly) when no R2 bucket binding is configured.
+If you enable and bind R2 later, `/api/kb` automatically uses R2.
+
 ### Configure widget to use KB
 
 ```html
@@ -149,6 +200,9 @@ curl -X PUT https://your-worker.workers.dev/api/kb/my-docs \
 |---|---|---|
 | `ADMIN_SECRET` | Yes | Secret for admin API endpoints |
 | `RESEND_API_KEY` | Yes | [Resend](https://resend.com) API key for email |
+| `AZURE_DEV_AI_API_KEY` | Yes (for Azure GPT-5.1 proxy mode) | Azure OpenAI key used by backend proxy when provider is `azure-openai` |
+| `AZURE_DEV_AI_BASE_URL` | Yes (wrangler var) | Azure OpenAI base URL (`.../openai/v1`) |
+| `AZURE_DEV_AI_MODEL` | No | Default Azure model/deployment (`gpt-5.1`) |
 
 ## Cloudflare Free Tier Limits
 

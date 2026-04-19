@@ -13,7 +13,7 @@ Embeddable GenAI-powered web chat widget with client-side agent loop, tool calli
 - 💾 Session persistence (IndexedDB / localStorage)
 - 🌐 WebMCP support (Chrome 146+) — provider + consumer
 - 🎨 Shadow DOM isolation — works on any website
-- ☁️ Cloudflare Workers backend (D1, KV, R2, Queues)
+- ☁️ Cloudflare Workers backend (D1, KV, Queues; R2 optional)
 - 🔑 Hybrid API keys: BYOK + managed
 
 ## Quick Start
@@ -115,9 +115,9 @@ See the [Skill Authoring Guide](docs/skills.md) for full documentation on creati
 │  │ Queue   │ │ Tickets   │  │
 │  └─────────┘ └───────────┘  │
 │  ┌─────────┐ ┌───────────┐  │
-│  │ KB (R2) │ │ Admin     │  │
+│  │ KB (KV/R2)│ │ Admin    │  │
 │  └─────────┘ └───────────┘  │
-│  D1 · KV · R2 · Queues      │
+│  D1 · KV · Queues (R2 opt.) │
 └──────────────────────────────┘
 ```
 
@@ -146,6 +146,13 @@ The widget can discover and use tools registered by the host page or other exten
 | `@vibetechnologies/webagent` | Client-side chat widget |
 | `@vibetechnologies/webagent-backend` | Cloudflare Workers backend |
 
+## Examples
+
+- `examples/basic/index.html` — minimal static embed example
+- `examples/ecommerce/index.html` — e-commerce flavored static demo
+- `examples/docs-site/index.html` — docs-focused static demo
+- `examples/config-assistant/index.html` — Cloudflare-hostable widget configuration assistant with live preview and copy-paste embed generation
+
 ## Development
 
 ```bash
@@ -154,6 +161,7 @@ pnpm typecheck    # Type-check all packages
 pnpm build        # Build all packages
 pnpm test         # Run tests
 pnpm dev          # Dev mode (all packages)
+pnpm --filter @vibetechnologies/webagent-backend dev:azure  # Backend with ~/.env.d/azure-dev.env
 ```
 
 ## License

@@ -5,6 +5,9 @@ import { z } from 'zod';
 type Bindings = {
   DB: D1Database;
   KV: KVNamespace;
+  AZURE_DEV_AI_API_KEY?: string;
+  AZURE_DEV_AI_BASE_URL?: string;
+  AZURE_DEV_AI_MODEL?: string;
 };
 
 type Variables = {
@@ -27,27 +30,43 @@ const PROVIDER_URLS: Record<string, string> = {
 chatRoute.post('/completions', async (c) => {
   const body = await c.req.json();
   const isByok = c.get('isByok');
-  const provider = c.get('provider') || c.req.header('X-LLM-Provider') || 'openai';
-  const providerApiKey = c.get('providerApiKey') || c.req.header('Authorization')?.replace('Bearer ', '');
+  const azureConfigured = Boolean(c.env.AZURE_DEV_AI_API_KEY && c.env.AZURE_DEV_AI_BASE_URL);
+  const provider = c.get('provider')
+    || c.req.header('X-LLM-Provider')
+    || (azureConfigured && !isByok ? 'azure-openai' : 'openai');
+  const providerApiKey = provider === 'azure-openai'
+    ? (c.env.AZURE_DEV_AI_API_KEY || c.get('providerApiKey') || c.req.header('Authorization')?.replace('Bearer ', ''))
+    : (c.get('providerApiKey') || c.req.header('Authorization')?.replace('Bearer ', ''));
 
   if (!providerApiKey) {
     return c.json({ error: 'No API key provided' }, 401);
   }
 
-  const baseUrl = PROVIDER_URLS[provider];
-  if (!baseUrl && provider !== 'azure-openai') {
-    return c.json({ error: `Unsupported provider: ${provider}` }, 400);
+  const baseUrl = provider === 'azure-openai' ? c.env.AZURE_DEV_AI_BASE_URL : PROVIDER_URLS[provider];
+  if (!baseUrl) {
+    return c.json(
+      { error: provider === 'azure-openai' ? 'Azure OpenAI is not configured' : `Unsupported provider: ${provider}` },
+      400
+    );
   }
 
-  const targetUrl = `${baseUrl}/chat/completions`;
+  const targetUrl = `${baseUrl.replace(/\/+$/, '')}/chat/completions`;
+  const requestBody = provider === 'azure-openai'
+    ? { ...body, model: body.model || c.env.AZURE_DEV_AI_MODEL || 'gpt-5.1' }
+    : body;
 
   // Check if streaming
-  const isStreaming = body.stream === true;
+  const isStreaming = requestBody.stream === true;
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${providerApiKey}`,
   };
+
+  if (provider === 'azure-openai') {
+    headers['api-key'] = providerApiKey;
+  } else {
+    headers['Authorization'] = `Bearer ${providerApiKey}`;
+  }
 
   // Anthropic-specific headers
   if (provider === 'anthropic') {
@@ -58,7 +77,7 @@ chatRoute.post('/completions', async (c) => {
     const response = await fetch(targetUrl, {
       method: 'POST',
       headers,
-      body: JSON.stringify(body),
+      body: JSON.stringify(requestBody),
     });
 
     if (!response.ok) {
@@ -97,7 +116,7 @@ chatRoute.post('/completions', async (c) => {
         await c.env.DB.prepare(
           `INSERT INTO usage_log (customer_id, provider, model, prompt_tokens, completion_tokens, total_tokens, created_at)
            VALUES (?, ?, ?, ?, ?, ?, datetime('now'))`
-        ).bind(customerId, provider, body.model || 'unknown', prompt_tokens || 0, completion_tokens || 0, total_tokens || 0).run();
+        ).bind(customerId, provider, requestBody.model || 'unknown', prompt_tokens || 0, completion_tokens || 0, total_tokens || 0).run();
       } catch (err) {
         console.error('Usage logging failed:', err);
       }

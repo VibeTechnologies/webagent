@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebAgent Widget Config Assistant</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f6fb;
+      --surface: rgba(255, 255, 255, 0.92);
+      --surface-strong: #ffffff;
+      --border: rgba(15, 23, 42, 0.12);
+      --text: #0f172a;
+      --muted: #475569;
+      --accent: #2563eb;
+      --accent-soft: rgba(37, 99, 235, 0.14);
+      --success: #0f766e;
+      --warning: #b45309;
+      --shadow: 0 24px 60px rgba(15, 23, 42, 0.12);
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 12px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(14, 165, 233, 0.14), transparent 24%),
+        linear-gradient(180deg, #fbfdff 0%, var(--bg) 100%);
+    }
+
+    a { color: var(--accent); }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 40px 0 72px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 24px;
+      margin-bottom: 24px;
+      align-items: stretch;
+    }
+
+    .panel {
+      background: var(--surface);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+    }
+
+    .hero h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 4vw, 3.35rem);
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.65;
+      max-width: 62ch;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 18px 0 22px;
+    }
+
+    .badge,
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.92rem;
+      line-height: 1;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .status-pill strong { font-weight: 700; }
+
+    .badge-dot,
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--accent);
+      flex: none;
+    }
+
+    .status-dot.success { background: #10b981; }
+    .status-dot.warning { background: #f59e0b; }
+    .status-dot.error { background: #ef4444; }
+
+    .hero-card {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+
+    .hero-card .panel {
+      min-height: 100%;
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-card h2,
+    .section h2,
+    .section h3,
+    .section h4,
+    .panel h2,
+    .panel h3 {
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stat {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: rgba(248, 250, 252, 0.95);
+      padding: 16px;
+    }
+
+    .stat-label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1rem;
+      line-height: 1.45;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 0.98fr) minmax(0, 1.02fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .section {
+      display: grid;
+      gap: 18px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .section-copy {
+      color: var(--muted);
+      margin: 6px 0 0;
+      line-height: 1.6;
+    }
+
+    form {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      font-size: 0.93rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      font: inherit;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid rgba(148, 163, 184, 0.42);
+      background: #fff;
+      color: var(--text);
+      padding: 12px 14px;
+      transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    }
+
+    textarea {
+      min-height: 96px;
+      resize: vertical;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: rgba(37, 99, 235, 0.75);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+    }
+
+    .field-hint,
+    .fine-print,
+    .snippet-meta,
+    .helper-copy,
+    .preview-note {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+
+    .field-hint code,
+    .helper-copy code,
+    .snippet-meta code,
+    .preview-note code {
+      background: rgba(15, 23, 42, 0.06);
+      border-radius: 8px;
+      padding: 2px 6px;
+      font-size: 0.88rem;
+    }
+
+    .actions,
+    .snippet-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 11px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+    }
+
+    button.primary {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+    }
+
+    button.secondary {
+      background: rgba(255, 255, 255, 0.95);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    pre {
+      margin: 0;
+      border-radius: 20px;
+      background: #0f172a;
+      color: #e2e8f0;
+      overflow-x: auto;
+      padding: 22px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      border: 1px solid rgba(148, 163, 184, 0.14);
+    }
+
+    code { font-family: 'SFMono-Regular', ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+    .list {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      display: grid;
+      gap: 10px;
+      line-height: 1.6;
+    }
+
+    .helper-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .helper-card,
+    .preview-card,
+    .status-card {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: rgba(248, 250, 252, 0.92);
+      padding: 18px;
+    }
+
+    .preview-shell {
+      min-height: 220px;
+      border-radius: 22px;
+      border: 1px dashed rgba(37, 99, 235, 0.32);
+      background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(241,245,249,0.95));
+      padding: 22px;
+      display: grid;
+      gap: 16px;
+      align-content: start;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .preview-shell::after {
+      content: 'Live widget renders on this page';
+      position: absolute;
+      top: 18px;
+      right: 18px;
+      font-size: 0.84rem;
+      color: var(--muted);
+      background: rgba(255,255,255,0.8);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 999px;
+    }
+
+    .preview-steps {
+      display: grid;
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      max-width: 40ch;
+    }
+
+    .preview-steps li {
+      display: grid;
+      gap: 4px;
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .preview-steps li::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      position: absolute;
+      left: 0;
+      top: 10px;
+    }
+
+    .source-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .mono {
+      font-family: 'SFMono-Regular', ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.88rem;
+      word-break: break-all;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .layout,
+      .helper-grid,
+      .grid,
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .page {
+        width: min(100% - 24px, 960px);
+        padding-top: 22px;
+      }
+
+      .panel {
+        padding: 22px;
+      }
+
+      .preview-shell::after {
+        position: static;
+        justify-self: start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <div class="panel">
+        <span class="badge"><span class="badge-dot"></span>Cloudflare-hostable static demo</span>
+        <h1>WebAgent widget config assistant</h1>
+        <p>
+          Tune the widget, preview it live, and copy a production-ready embed snippet.
+          The page loads the local widget bundle during development, then automatically falls back to a CDN bundle when you host it on Cloudflare Pages or Workers assets.
+        </p>
+        <div class="badges">
+          <span class="badge">Plain HTML/CSS/JS</span>
+          <span class="badge">Local dist in dev</span>
+          <span class="badge">Versioned CDN in production</span>
+          <span class="badge">Live re-init preview</span>
+        </div>
+        <div class="actions">
+          <button class="primary" id="copySnippetTop" type="button">Copy embed snippet</button>
+          <button class="secondary" id="resetDefaults" type="button">Reset defaults</button>
+          <span class="status-pill" id="copyFeedback"><span class="status-dot"></span><strong>Ready</strong> Snippet updates live as you type.</span>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="panel">
+          <div class="section-header">
+            <div>
+              <h2>Runtime status</h2>
+              <p class="section-copy">Bundle source selection, WebMCP support, and persistence details update automatically.</p>
+            </div>
+          </div>
+          <div class="stats">
+            <div class="stat">
+              <span class="stat-label">Bundle mode</span>
+              <strong id="bundleMode">Detecting…</strong>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Bundle source</span>
+              <strong class="mono" id="bundleSource">Loading…</strong>
+            </div>
+            <div class="stat">
+              <span class="stat-label">WebMCP</span>
+              <strong id="webmcpStatus">Checking browser support…</strong>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Persistence</span>
+              <strong id="persistenceSummary">Preparing preview details…</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="section">
+        <div class="panel">
+          <div class="section-header">
+            <div>
+              <h2>1. Configure the widget</h2>
+              <p class="section-copy">Start with sensible defaults, then shape the configuration for your product.</p>
+            </div>
+          </div>
+          <form id="configForm">
+            <div class="grid">
+              <label>
+                API base
+                <input id="apiBase" name="apiBase" type="url" placeholder="https://your-worker.workers.dev" required>
+                <span class="field-hint">Your deployed backend worker URL.</span>
+              </label>
+              <label>
+                API key / managed session key
+                <input id="apiKey" name="apiKey" type="text" placeholder="wa_your_managed_key">
+                <span class="field-hint">Accepts managed <code>wa_...</code> keys or BYOK values such as <code>sk-...</code>.</span>
+              </label>
+            </div>
+
+            <div class="grid">
+              <label>
+                Theme
+                <select id="theme" name="theme">
+                  <option value="light">light</option>
+                  <option value="dark">dark</option>
+                  <option value="auto">auto</option>
+                </select>
+              </label>
+              <label>
+                Position
+                <select id="position" name="position">
+                  <option value="bottom-right">bottom-right</option>
+                  <option value="bottom-left">bottom-left</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="grid">
+              <label>
+                Model
+                <input id="model" name="model" type="text" placeholder="gpt-5.1">
+                <span class="field-hint">Provider selection is typically inferred by your backend or key strategy.</span>
+              </label>
+              <label>
+                Persistence
+                <select id="persistence" name="persistence">
+                  <option value="indexeddb">indexeddb</option>
+                  <option value="localStorage">localStorage</option>
+                  <option value="none">none</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="grid">
+              <label>
+                Session TTL (days)
+                <input id="sessionTtlDays" name="sessionTtlDays" type="number" min="1" step="1" value="7">
+                <span class="field-hint">Expired sessions are cleaned up automatically on load.</span>
+              </label>
+              <label>
+                Support email
+                <input id="supportEmail" name="supportEmail" type="email" placeholder="support@example.com">
+                <span class="field-hint">Used if you enable escalation flows.</span>
+              </label>
+            </div>
+
+            <label>
+              Welcome message
+              <textarea id="welcomeMessage" name="welcomeMessage" placeholder="Hi! How can I help you today?"></textarea>
+            </label>
+
+            <label>
+              Knowledge base URL
+              <input id="knowledgeBaseUrl" name="knowledgeBaseUrl" type="url" placeholder="https://your-worker.workers.dev/api/kb/product-docs">
+            </label>
+
+            <label>
+              System prompt (optional)
+              <textarea id="systemPrompt" name="systemPrompt" placeholder="You are a helpful support assistant for our product."></textarea>
+            </label>
+
+            <div class="actions">
+              <button class="primary" id="applyPreview" type="submit">Refresh live preview</button>
+              <button class="secondary" id="copySnippet" type="button">Copy embed snippet</button>
+              <span class="fine-print">Any change updates the snippet immediately and re-renders the widget preview after a short debounce.</span>
+            </div>
+          </form>
+        </div>
+
+        <div class="panel">
+          <div class="section-header">
+            <div>
+              <h2>2. Copy your embed snippet</h2>
+              <p class="section-copy">Paste this into another product when you are ready. It always uses the production CDN bundle.</p>
+            </div>
+          </div>
+          <div class="snippet-actions">
+            <button class="primary" id="copySnippetInline" type="button">Copy embed snippet</button>
+            <span class="snippet-meta">CDN target: <code id="cdnUrlLabel"></code></span>
+          </div>
+          <pre><code id="embedSnippet"></code></pre>
+          <p class="footer-note">Tip: the demo page itself can use the local bundle during development, but the exported snippet stays production-safe.</p>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="panel">
+          <div class="section-header">
+            <div>
+              <h2>3. Preview the live widget</h2>
+              <p class="section-copy">The widget renders on this page using the selected config. If you change API settings, the current singleton instance is destroyed before re-init.</p>
+            </div>
+          </div>
+          <div class="preview-shell">
+            <div class="preview-card">
+              <h3>Preview instructions</h3>
+              <p class="preview-note">Look for the WebAgent launcher in the lower corner of this page. The preview uses the same <code>WebAgent.init(...)</code> flow as your production embed.</p>
+            </div>
+            <ol class="preview-steps">
+              <li>
+                <strong>Configure the values you want to test.</strong>
+                <span class="preview-note">Use real backend URLs if you want the preview conversation to work end-to-end.</span>
+              </li>
+              <li>
+                <strong>Open the launcher bubble.</strong>
+                <span class="preview-note">The widget is mounted as a fixed overlay, so it behaves like it would on a customer site.</span>
+              </li>
+              <li>
+                <strong>Copy the generated snippet.</strong>
+                <span class="preview-note">It is ready for Cloudflare-hosted static sites and other products that can load a script tag.</span>
+              </li>
+            </ol>
+            <div class="status-card">
+              <h3>Preview status</h3>
+              <p class="helper-copy" id="previewStatus">Loading widget bundle…</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="section-header">
+            <div>
+              <h2>4. WebMCP & session behavior</h2>
+              <p class="section-copy">Helpful operational notes for product teams evaluating the widget.</p>
+            </div>
+          </div>
+          <div class="helper-grid">
+            <div class="helper-card">
+              <h3>WebMCP detection</h3>
+              <p class="helper-copy" id="webmcpExplanation"></p>
+              <ul class="list">
+                <li>The widget checks <code>typeof navigator !== 'undefined' &amp;&amp; 'modelContext' in navigator</code>.</li>
+                <li>If available, WebAgent can consume tools exposed by the page or browser and can register its own API skills as WebMCP tools.</li>
+                <li>If unavailable, the widget still works normally without browser-level tool integration.</li>
+              </ul>
+            </div>
+            <div class="helper-card">
+              <h3>Session persistence</h3>
+              <p class="helper-copy" id="persistenceExplanation"></p>
+              <ul class="list">
+                <li>The active session id lives in <code>sessionStorage</code> under <code>webagent_current_session</code>.</li>
+                <li>Chat history is persisted with IndexedDB, localStorage, or a no-op adapter depending on the selected mode.</li>
+                <li>Expired sessions are removed using the configured TTL during store cleanup.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="status-card">
+            <h3>Bundle fallback order</h3>
+            <ol class="source-list" id="bundleFallbackOrder"></ol>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const PACKAGE_VERSION = '0.1.0';
+      const CDN_URL = `https://cdn.jsdelivr.net/npm/@vibetechnologies/webagent@${PACKAGE_VERSION}/dist/webagent.min.js`;
+      const UNPKG_URL = `https://unpkg.com/@vibetechnologies/webagent@${PACKAGE_VERSION}/dist/webagent.min.js`;
+      const LOCAL_BUNDLE_CANDIDATES = [
+        '../../packages/widget/dist/webagent.min.js',
+        '/packages/widget/dist/webagent.min.js',
+      ];
+      const DEFAULTS = (() => {
+        const localMode = location.protocol === 'file:' || ['localhost', '127.0.0.1'].includes(location.hostname);
+        return {
+          apiBase: localMode ? 'http://localhost:8787' : 'https://webagent-backend.vibetech-webagent.workers.dev',
+          apiKey: localMode ? 'demo-key' : 'wa_b2b3fc904c4aeb28a8590054',
+          theme: 'light',
+          position: 'bottom-right',
+          welcomeMessage: 'Hi! 👋 I can help you configure your WebAgent widget.',
+          knowledgeBaseUrl: localMode
+            ? 'http://localhost:8787/api/kb/product-docs'
+            : 'https://webagent-backend.vibetech-webagent.workers.dev/api/kb/product-docs',
+          systemPrompt: 'You are a helpful assistant that answers product and setup questions clearly and concisely.',
+          persistence: 'indexeddb',
+          model: 'gpt-5.1',
+          sessionTtlDays: '7',
+          supportEmail: 'support@example.com',
+        };
+      })();
+
+      const form = document.getElementById('configForm');
+      const embedSnippet = document.getElementById('embedSnippet');
+      const copyFeedback = document.getElementById('copyFeedback');
+      const bundleMode = document.getElementById('bundleMode');
+      const bundleSource = document.getElementById('bundleSource');
+      const webmcpStatus = document.getElementById('webmcpStatus');
+      const persistenceSummary = document.getElementById('persistenceSummary');
+      const previewStatus = document.getElementById('previewStatus');
+      const webmcpExplanation = document.getElementById('webmcpExplanation');
+      const persistenceExplanation = document.getElementById('persistenceExplanation');
+      const bundleFallbackOrder = document.getElementById('bundleFallbackOrder');
+      const cdnUrlLabel = document.getElementById('cdnUrlLabel');
+      const copyButtons = [
+        document.getElementById('copySnippetTop'),
+        document.getElementById('copySnippet'),
+        document.getElementById('copySnippetInline'),
+      ];
+      const resetDefaultsButton = document.getElementById('resetDefaults');
+      const params = new URLSearchParams(location.search);
+      const requestedBundleMode = params.get('bundle');
+      const environmentMode = location.protocol === 'file:' || ['localhost', '127.0.0.1'].includes(location.hostname)
+        ? 'development'
+        : 'production';
+      const resolvedBundleMode = requestedBundleMode === 'cdn'
+        ? 'production'
+        : requestedBundleMode === 'local'
+          ? 'development'
+          : environmentMode;
+      const bundleCandidates = resolvedBundleMode === 'development'
+        ? [...LOCAL_BUNDLE_CANDIDATES, CDN_URL, UNPKG_URL]
+        : [CDN_URL, UNPKG_URL, ...LOCAL_BUNDLE_CANDIDATES];
+
+      let activeBundleSource = '';
+      let refreshTimer;
+
+      cdnUrlLabel.textContent = CDN_URL;
+      bundleMode.textContent = `${resolvedBundleMode} (${requestedBundleMode ? `forced by ?bundle=${requestedBundleMode}` : 'auto-detected'})`;
+      bundleFallbackOrder.innerHTML = bundleCandidates
+        .map(url => `<li><span class="mono">${escapeHtml(url)}</span></li>`)
+        .join('');
+
+      applyDefaults({ announce: false });
+      updateEmbedSnippet();
+      updateHelperContent();
+
+      copyButtons.forEach(button => {
+        button.addEventListener('click', () => copySnippet());
+      });
+
+      resetDefaultsButton.addEventListener('click', () => {
+        applyDefaults();
+        refreshPreview();
+      });
+
+      form.addEventListener('submit', event => {
+        event.preventDefault();
+        refreshPreview();
+      });
+
+      form.addEventListener('input', () => {
+        updateEmbedSnippet();
+        updateHelperContent();
+        window.clearTimeout(refreshTimer);
+        refreshTimer = window.setTimeout(refreshPreview, 350);
+      });
+
+      form.addEventListener('change', () => {
+        updateEmbedSnippet();
+        updateHelperContent();
+      });
+
+      loadWidgetBundle(bundleCandidates)
+        .then(source => {
+          activeBundleSource = source;
+          bundleSource.textContent = source;
+          previewStatus.textContent = 'Widget bundle ready. The preview will render with your current config.';
+          refreshPreview();
+        })
+        .catch(error => {
+          bundleSource.textContent = 'No bundle could be loaded';
+          previewStatus.textContent = `Bundle load failed: ${error.message}`;
+          setFeedback(`Bundle load failed — ${error.message}`, 'error');
+        });
+
+      function applyDefaults(options = { announce: true }) {
+        Object.entries(DEFAULTS).forEach(([key, value]) => {
+          const input = form.elements.namedItem(key);
+          if (input) {
+            input.value = value;
+          }
+        });
+        updateEmbedSnippet();
+        updateHelperContent();
+        if (options.announce) {
+          setFeedback('Defaults restored.', 'warning');
+        }
+      }
+
+      async function refreshPreview() {
+        updateEmbedSnippet();
+        updateHelperContent();
+
+        if (!window.WebAgent) {
+          previewStatus.textContent = 'Widget bundle is still loading.';
+          return;
+        }
+
+        const config = readConfig();
+
+        if (!config.apiBase) {
+          const existing = typeof window.WebAgent.getInstance === 'function'
+            ? window.WebAgent.getInstance()
+            : null;
+          if (existing && typeof existing.destroy === 'function') {
+            existing.destroy();
+          }
+          previewStatus.textContent = 'Add an API base URL to render the live preview.';
+          return;
+        }
+
+        try {
+          const existing = typeof window.WebAgent.getInstance === 'function'
+            ? window.WebAgent.getInstance()
+            : null;
+          if (existing && typeof existing.destroy === 'function') {
+            existing.destroy();
+          }
+
+          window.WebAgent.init(config);
+          previewStatus.textContent = `Preview refreshed using ${activeBundleSource || 'the loaded bundle'}. Open the launcher in the ${config.position === 'bottom-left' ? 'lower-left' : 'lower-right'} corner.`;
+        } catch (error) {
+          previewStatus.textContent = `Preview init failed: ${error.message}`;
+          setFeedback(`Preview init failed — ${error.message}`, 'error');
+        }
+      }
+
+      function readConfig() {
+        const formData = new FormData(form);
+        const config = {
+          apiBase: trim(formData.get('apiBase')),
+          apiKey: trim(formData.get('apiKey')),
+          theme: trim(formData.get('theme')) || 'light',
+          welcomeMessage: trim(formData.get('welcomeMessage')),
+          knowledgeBaseUrl: trim(formData.get('knowledgeBaseUrl')),
+          position: trim(formData.get('position')) || 'bottom-right',
+          persistence: trim(formData.get('persistence')) || 'indexeddb',
+          model: trim(formData.get('model')),
+          systemPrompt: trim(formData.get('systemPrompt')),
+          supportEmail: trim(formData.get('supportEmail')),
+          sessionTtlDays: Number(trim(formData.get('sessionTtlDays'))) || 7,
+        };
+
+        return Object.fromEntries(
+          Object.entries(config).filter(([, value]) => value !== '' && value !== null && value !== undefined)
+        );
+      }
+
+      function updateEmbedSnippet() {
+        const config = readConfig();
+        const snippet = [
+          `<script src="${CDN_URL}"></` + 'script>',
+          '<script>',
+          `  WebAgent.init(${stringifyConfig(config, 2)});`,
+          '</' + 'script>',
+        ].join('\n');
+        embedSnippet.textContent = snippet;
+      }
+
+      function updateHelperContent() {
+        const config = readConfig();
+        const webmcpAvailable = typeof navigator !== 'undefined' && 'modelContext' in navigator;
+        webmcpStatus.textContent = webmcpAvailable
+          ? 'Supported in this browser'
+          : 'Not detected in this browser';
+        webmcpExplanation.textContent = webmcpAvailable
+          ? 'This browser exposes navigator.modelContext, so WebAgent can participate in WebMCP flows when supported skills are present.'
+          : 'This browser does not expose navigator.modelContext, so the widget will use its regular tool pipeline without WebMCP integration.';
+
+        const persistenceMode = config.persistence || 'indexeddb';
+        const ttl = config.sessionTtlDays || 7;
+        persistenceSummary.textContent = persistenceMode === 'none'
+          ? 'No persisted chat storage — session id only lasts for this tab.'
+          : `${persistenceMode} storage with a ${ttl}-day TTL.`;
+        persistenceExplanation.textContent = persistenceMode === 'none'
+          ? 'The widget still creates a per-tab session id in sessionStorage, but message history is not persisted across reloads.'
+          : `The widget keeps the current session id in sessionStorage and stores chat history in ${persistenceMode} until it expires after ${ttl} day${ttl === 1 ? '' : 's'}.`;
+      }
+
+      async function copySnippet() {
+        const snippet = embedSnippet.textContent;
+
+        try {
+          if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(snippet);
+          } else {
+            const temp = document.createElement('textarea');
+            temp.value = snippet;
+            temp.setAttribute('readonly', 'readonly');
+            temp.style.position = 'fixed';
+            temp.style.opacity = '0';
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            temp.remove();
+          }
+          setFeedback('Embed snippet copied to clipboard.', 'success');
+        } catch (error) {
+          setFeedback(`Copy failed — ${error.message}`, 'warning');
+        }
+      }
+
+      function setFeedback(message, tone) {
+        const label = copyFeedback.querySelector('strong');
+        const dot = copyFeedback.querySelector('.status-dot');
+        label.textContent = tone === 'success' ? 'Copied' : tone === 'error' ? 'Error' : 'Ready';
+        copyFeedback.lastChild.textContent = ` ${message}`;
+        dot.className = `status-dot ${tone === 'success' ? 'success' : tone === 'error' ? 'error' : 'warning'}`;
+      }
+
+      function stringifyConfig(config, indentLevel) {
+        const entries = Object.entries(config);
+        if (!entries.length) return '{}';
+        const pad = ' '.repeat(indentLevel);
+        const lines = entries.map(([key, value]) => `${pad}${key}: ${formatValue(value, indentLevel)}`);
+        return `{\n${lines.join(',\n')}\n${' '.repeat(Math.max(indentLevel - 2, 0))}}`;
+      }
+
+      function formatValue(value, indentLevel) {
+        if (typeof value === 'string') {
+          return JSON.stringify(value);
+        }
+        if (typeof value === 'number' || typeof value === 'boolean') {
+          return String(value);
+        }
+        if (Array.isArray(value)) {
+          return JSON.stringify(value, null, indentLevel);
+        }
+        if (value && typeof value === 'object') {
+          const nested = Object.entries(value).map(([key, nestedValue]) => `${' '.repeat(indentLevel + 2)}${key}: ${formatValue(nestedValue, indentLevel + 2)}`);
+          return `{\n${nested.join(',\n')}\n${' '.repeat(indentLevel)}}`;
+        }
+        return 'undefined';
+      }
+
+      async function loadWidgetBundle(candidates) {
+        if (window.WebAgent) {
+          return 'window.WebAgent already present';
+        }
+
+        for (const url of candidates) {
+          try {
+            await loadScript(url);
+            if (window.WebAgent) {
+              return url;
+            }
+          } catch (error) {
+            console.warn(`Failed to load ${url}`, error);
+          }
+        }
+
+        throw new Error('tried all configured bundle sources');
+      }
+
+      function loadScript(src) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = src;
+          script.async = true;
+          script.onload = () => resolve(src);
+          script.onerror = () => {
+            script.remove();
+            reject(new Error(`unable to load ${src}`));
+          };
+          document.head.appendChild(script);
+        });
+      }
+
+      function trim(value) {
+        return typeof value === 'string' ? value.trim() : '';
+      }
+
+      function escapeHtml(value) {
+        return value
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '&lt;')
+          .replaceAll('>', '&gt;')
+          .replaceAll('"', '&quot;')
+          .replaceAll("'", '&#39;');
+      }
+    })();
+  </script>
+</body>
+</html>

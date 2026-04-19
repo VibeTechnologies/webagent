@@ -18,8 +18,11 @@ type MockBindings = {
   KV: KVNamespace;
   DB: D1Database;
   EMAIL_QUEUE: Queue;
-  KB_BUCKET: R2Bucket;
+  KB_BUCKET?: R2Bucket;
   ADMIN_SECRET: string;
+  AZURE_DEV_AI_API_KEY?: string;
+  AZURE_DEV_AI_BASE_URL?: string;
+  AZURE_DEV_AI_MODEL?: string;
 };
 
 export const createMockBindings = (overrides: Partial<MockBindings> = {}) => {
