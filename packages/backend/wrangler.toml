@@ -5,19 +5,19 @@ compatibility_date = "2025-04-01"
 [observability]
 enabled = true
 
+[vars]
+AZURE_DEV_AI_BASE_URL = "https://vibe-dev-ai.cognitiveservices.azure.com/openai/v1"
+AZURE_DEV_AI_MODEL = "gpt-5.1"
+
 [[d1_databases]]
 binding = "DB"
 database_name = "webagent-db"
-database_id = "placeholder-will-be-set-on-deploy"
+database_id = "f7326fe0-aece-4cf6-afd0-bb1e5188b479"
 migrations_dir = "migrations"
 
 [[kv_namespaces]]
 binding = "KV"
-id = "placeholder-will-be-set-on-deploy"
-
-[[r2_buckets]]
-binding = "KB_BUCKET"
-bucket_name = "webagent-kb"
+id = "2cbb9e9ba5ac4a11809f0494daae3381"
 
 [[queues.producers]]
 binding = "EMAIL_QUEUE"

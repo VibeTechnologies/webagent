@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "wrangler dev",
+    "dev:azure": "wrangler dev --env-file $HOME/.env.d/azure-dev.env",
     "build": "tsc --noEmit",
     "deploy": "wrangler deploy",
     "db:migrate": "wrangler d1 migrations apply webagent-db --local",

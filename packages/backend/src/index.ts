@@ -14,10 +14,13 @@ import { rateLimitMiddleware } from './middleware/rate-limit';
 type Bindings = {
   DB: D1Database;
   KV: KVNamespace;
-  KB_BUCKET: R2Bucket;
+  KB_BUCKET?: R2Bucket;
   EMAIL_QUEUE: Queue;
   ADMIN_SECRET: string;
   RESEND_API_KEY: string;
+  AZURE_DEV_AI_API_KEY?: string;
+  AZURE_DEV_AI_BASE_URL?: string;
+  AZURE_DEV_AI_MODEL?: string;
 };
 
 const app = new Hono<{ Bindings: Bindings }>();
