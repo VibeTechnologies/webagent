@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebAgent — Docs Site Example</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      color: #1a1a1a;
+      line-height: 1.6;
+    }
+    h1 { color: #7c3aed; }
+    h2 { border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+    pre { background: #1e293b; color: #e2e8f0; padding: 16px; border-radius: 8px; overflow-x: auto; }
+    code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 14px; }
+    .info { background: #f5f3ff; padding: 16px; border-radius: 8px; margin: 16px 0; border: 1px solid #ddd6fe; }
+  </style>
+</head>
+<body>
+  <h1>📚 API Documentation</h1>
+  <p>Welcome to the ExampleAPI documentation. Our AI assistant can help you find the right endpoints and code examples.</p>
+
+  <div class="info">
+    <h3>Ask the AI assistant</h3>
+    <p>Try: "How do I authenticate?" or "Show me an example of creating a user"</p>
+  </div>
+
+  <h2>Authentication</h2>
+  <p>All API requests require a Bearer token in the Authorization header.</p>
+  <pre><code>curl -H "Authorization: Bearer YOUR_TOKEN" https://api.example.com/v1/users</code></pre>
+
+  <h2>Endpoints</h2>
+
+  <h3>GET /v1/users</h3>
+  <p>List all users. Supports pagination with <code>page</code> and <code>limit</code> query parameters.</p>
+
+  <h3>POST /v1/users</h3>
+  <p>Create a new user. Requires <code>name</code> and <code>email</code> in the request body.</p>
+  <pre><code>{
+  "name": "Jane Doe",
+  "email": "jane@example.com"
+}</code></pre>
+
+  <h3>GET /v1/users/:id</h3>
+  <p>Get a single user by ID.</p>
+
+  <h3>DELETE /v1/users/:id</h3>
+  <p>Delete a user. Returns 204 No Content on success.</p>
+
+  <script src="../../packages/widget/dist/webagent.min.js"></script>
+  <script>
+    WebAgent.init({
+      apiBase: 'http://localhost:8787',
+      apiKey: 'demo-key',
+      systemPrompt: `You are a documentation assistant for ExampleAPI.
+Help developers understand the API, find the right endpoints, and write code examples.
+Use the knowledge base to answer questions accurately.
+If you're unsure, suggest the user contact support.`,
+      welcomeMessage: 'Hi! 📚 I can help you navigate the API docs. What are you looking for?',
+      supportEmail: 'devrel@example.com',
+      theme: { primaryColor: '#7c3aed' },
+      knowledgeBaseUrl: 'http://localhost:8787/api/kb/example-api',
+    });
+  </script>
+</body>
+</html>

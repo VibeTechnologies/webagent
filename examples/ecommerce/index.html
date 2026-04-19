@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebAgent — E-commerce Example</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      color: #1a1a1a;
+    }
+    h1 { color: #059669; }
+    .products { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin: 24px 0; }
+    .product { border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; }
+    .product h3 { margin: 0 0 8px; }
+    .product .price { color: #059669; font-weight: bold; font-size: 18px; }
+    .info { background: #ecfdf5; padding: 16px; border-radius: 8px; margin: 16px 0; border: 1px solid #a7f3d0; }
+  </style>
+</head>
+<body>
+  <h1>🛒 Acme Store</h1>
+  <p>Welcome to the Acme Store! Our AI assistant can help you find products and place orders.</p>
+
+  <div class="info">
+    <h3>Chat with our assistant</h3>
+    <p>Try asking: "Show me laptops under $1000" or "What's your return policy?"</p>
+  </div>
+
+  <h2>Featured Products</h2>
+  <div class="products">
+    <div class="product">
+      <h3>Wireless Headphones</h3>
+      <p>Premium noise-cancelling</p>
+      <p class="price">$149.99</p>
+    </div>
+    <div class="product">
+      <h3>Laptop Pro 15"</h3>
+      <p>M3 chip, 16GB RAM</p>
+      <p class="price">$1,299.99</p>
+    </div>
+    <div class="product">
+      <h3>Smart Watch</h3>
+      <p>Health & fitness tracking</p>
+      <p class="price">$299.99</p>
+    </div>
+    <div class="product">
+      <h3>USB-C Hub</h3>
+      <p>7-in-1 multiport adapter</p>
+      <p class="price">$49.99</p>
+    </div>
+  </div>
+
+  <script src="../../packages/widget/dist/webagent.min.js"></script>
+  <script>
+    WebAgent.init({
+      apiBase: 'http://localhost:8787',
+      apiKey: 'demo-key',
+      systemPrompt: `You are a helpful shopping assistant for the Acme Store.
+You can search products, check inventory, and help customers with orders.
+Be friendly and proactive in suggesting products.
+If a customer needs help with returns or complex issues, escalate to a human agent.`,
+      welcomeMessage: 'Welcome to Acme Store! 🛒 How can I help you shop today?',
+      supportEmail: 'support@acme-store.example.com',
+      theme: { primaryColor: '#059669' },
+      skills: [
+        {
+          name: 'search-products',
+          title: 'Search Products',
+          description: 'Search the product catalog by keyword, category, or price range',
+          parameters: {
+            type: 'object',
+            properties: {
+              query: { type: 'string', description: 'Search query' },
+              category: { type: 'string', description: 'Product category', enum: ['electronics', 'accessories', 'laptops', 'wearables'] },
+              maxPrice: { type: 'number', description: 'Maximum price filter' },
+            },
+            required: ['query'],
+          },
+          endpoint: 'https://api.acme-store.example.com/products/search?q={query}',
+          method: 'GET',
+          readOnly: true,
+        },
+        {
+          name: 'check-inventory',
+          title: 'Check Inventory',
+          description: 'Check if a product is in stock',
+          parameters: {
+            type: 'object',
+            properties: {
+              productId: { type: 'string', description: 'Product ID' },
+            },
+            required: ['productId'],
+          },
+          endpoint: 'https://api.acme-store.example.com/inventory/{productId}',
+          method: 'GET',
+          readOnly: true,
+        },
+      ],
+      knowledgeBaseUrl: 'http://localhost:8787/api/kb/acme-store',
+    });
+  </script>
+</body>
+</html>

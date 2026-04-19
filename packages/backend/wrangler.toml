@@ -1,0 +1,29 @@
+name = "webagent-backend"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+
+[observability]
+enabled = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "webagent-db"
+database_id = "placeholder-will-be-set-on-deploy"
+migrations_dir = "migrations"
+
+[[kv_namespaces]]
+binding = "KV"
+id = "placeholder-will-be-set-on-deploy"
+
+[[r2_buckets]]
+binding = "KB_BUCKET"
+bucket_name = "webagent-kb"
+
+[[queues.producers]]
+binding = "EMAIL_QUEUE"
+queue = "webagent-emails"
+
+[[queues.consumers]]
+queue = "webagent-emails"
+max_batch_size = 10
+max_batch_timeout = 30
