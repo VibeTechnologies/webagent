@@ -7,16 +7,18 @@ interface KnowledgeChunk {
   metadata?: Record<string, any>;
 }
 
-let knowledgeCache: KnowledgeChunk[] | null = null;
+const knowledgeCache = new Map<string, KnowledgeChunk[]>();
 
 export async function loadKnowledge(url: string): Promise<KnowledgeChunk[]> {
-  if (knowledgeCache) return knowledgeCache;
-  
+  const cached = knowledgeCache.get(url);
+  if (cached) return cached;
+
   try {
     const res = await fetch(url);
     if (!res.ok) throw new Error(`Failed to load KB: ${res.status}`);
-    knowledgeCache = await res.json();
-    return knowledgeCache!;
+    const chunks: KnowledgeChunk[] = await res.json();
+    knowledgeCache.set(url, chunks);
+    return chunks;
   } catch (err) {
     console.warn('Failed to load knowledge base:', err);
     return [];
@@ -77,6 +79,10 @@ function tokenize(text: string): string[] {
     .filter(t => t.length > 2);
 }
 
-export function clearKnowledgeCache() {
-  knowledgeCache = null;
+export function clearKnowledgeCache(url?: string) {
+  if (url) {
+    knowledgeCache.delete(url);
+  } else {
+    knowledgeCache.clear();
+  }
 }

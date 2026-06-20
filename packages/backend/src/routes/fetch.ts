@@ -14,6 +14,24 @@ const fetchSchema = z.object({
   body: z.any().optional(),
 });
 
+function isPrivateHostname(hostname: string): boolean {
+  // Loopback
+  if (['localhost', '127.0.0.1', '0.0.0.0', '::1'].includes(hostname)) return true;
+  // Link-local / cloud metadata (169.254.x.x)
+  if (hostname.startsWith('169.254.')) return true;
+  // RFC1918 class A (10.x.x.x)
+  if (hostname.startsWith('10.')) return true;
+  // RFC1918 class B (172.16.x.x – 172.31.x.x)
+  const parts = hostname.split('.');
+  if (parts[0] === '172' && parts.length >= 2) {
+    const second = parseInt(parts[1], 10);
+    if (second >= 16 && second <= 31) return true;
+  }
+  // RFC1918 class C (192.168.x.x)
+  if (hostname.startsWith('192.168.')) return true;
+  return false;
+}
+
 fetchRoute.post('/', async (c) => {
   const parsed = fetchSchema.safeParse(await c.req.json());
   if (!parsed.success) {
@@ -26,8 +44,7 @@ fetchRoute.post('/', async (c) => {
   try {
     const urlObj = new URL(url);
     const hostname = urlObj.hostname;
-    if (['localhost', '127.0.0.1', '0.0.0.0', '::1'].includes(hostname) ||
-        hostname.startsWith('10.') || hostname.startsWith('192.168.') || hostname.startsWith('172.')) {
+    if (isPrivateHostname(hostname)) {
       return c.json({ error: 'Internal URLs are not allowed' }, 403);
     }
   } catch {
@@ -51,10 +68,10 @@ fetchRoute.post('/', async (c) => {
     // Read response as text (safe for JSON and text content types)
     const text = await response.text();
     if (text.length > MAX_RESPONSE_SIZE) {
-      return c.json({ 
-        error: 'Response too large', 
+      return c.json({
+        error: 'Response too large',
         truncated: text.slice(0, MAX_RESPONSE_SIZE),
-        maxSize: MAX_RESPONSE_SIZE 
+        maxSize: MAX_RESPONSE_SIZE
       }, 413);
     }
 
