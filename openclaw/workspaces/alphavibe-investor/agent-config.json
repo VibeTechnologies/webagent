@@ -1,0 +1,9 @@
+{
+  "agentSlug": "alphavibe-investor",
+  "agentName": "AlphaVibe Investor",
+  "websiteName": "AlphaVibe / Quantarena",
+  "websiteUrl": "https://quantarena.xyz",
+  "apiDescription": "AI-native crypto hedge fund investor agent — market analysis, portfolio review, trade recommendations",
+  "skills": ["investment-analysis"],
+  "createdAt": "2026-06-20T00:00:00.000Z"
+}
